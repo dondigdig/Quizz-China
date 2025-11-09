@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exhibition Quiz</title>
+  <meta name="description" content="Exhibition mode quiz with end score reveal.">
+  <style>
+    :root { --bg:#050814; --panel:#0b1024; --accent:#6cf0ff; --accent-2:#9d7bff; --text:#eaf2ff; --muted:#a9b4cf; --good:#1ec28b; --bad:#ff5d6c; --shadow:rgba(0,0,0,0.5); }
+    html,body { height:100%; margin:0; background: radial-gradient(1200px 600px at 20% -10%, #1a1f3d 0%, transparent 60%), radial-gradient(1000px 700px at 120% 10%, #1a2a4d 0%, transparent 55%), var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .stage { min-height:100%; display:grid; place-items:center; padding:24px 16px; }
+    .wrap { width:min(1100px, 96vw); }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:6px 0 18px; }
+    .brand { display:flex; align-items:center; gap:14px; }
+    .logo { width:56px; height:56px; border-radius:14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow:0 14px 30px var(--shadow); }
+    h1 { margin:0; font-size:26px; letter-spacing:.3px; font-weight:800; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button { appearance:none; border:0; border-radius:12px; padding:12px 18px; font-weight:700; letter-spacing:.2px; color:#071018; background: linear-gradient(180deg, #e7f8ff, #c6f1ff); box-shadow:0 8px 18px rgba(108,240,255,0.25), inset 0 0 0 1px rgba(7,16,24,0.08); cursor:pointer; font-size:16px; }
+    button.secondary { background: linear-gradient(180deg, #efe9ff, #dacfff); box-shadow:0 8px 18px rgba(157,123,255,0.25), inset 0 0 0 1px rgba(7,16,24,0.08); }
+    button.ghost { color:var(--text); background:transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22); }
+    .panel { background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border-radius:20px; padding:20px; box-shadow:0 20px 60px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06); }
+    .meta { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+    .stat { background: rgba(255,255,255,0.06); border-radius:14px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:15px; color:var(--muted); }
+    .stat strong { color:var(--text); font-size:18px; }
+    .progress { height:12px; background: rgba(255,255,255,0.12); border-radius:999px; overflow:hidden; }
+    .progress > .bar { height:100%; width:0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 260ms ease; }
+    .question { font-size:28px; line-height:1.35; font-weight:800; margin:12px 6px 10px; text-shadow:0 8px 24px rgba(0,0,0,0.35); }
+    .choices { display:grid; grid-template-columns:1fr; gap:14px; margin-top:14px; }
+    .choice { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border-radius:16px; padding:16px; display:flex; gap:12px; align-items:center; cursor:pointer; transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); font-size:18px; }
+    .choice:hover { transform: translateY(-1px); background: rgba(255,255,255,0.1); }
+    .choice.correct { box-shadow: inset 0 0 0 2px rgba(30,194,139,0.8), 0 12px 30px rgba(30,194,139,0.18); }
+    .choice.incorrect { box-shadow: inset 0 0 0 2px rgba(255,93,108,0.8), 0 12px 30px rgba(255,93,108,0.15); }
+    .footer { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:18px; }
+    .inline-muted { color:var(--muted); font-weight:600; font-size:14px; }
+    .hidden { display:none !important; }
+    .end-screen { text-align:center; padding:40px 18px; }
+    .end-score { font-size:64px; font-weight:900; margin:10px 0 6px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow:0 14px 40px rgba(0,0,0,0.45); }
+    .end-sub { color:var(--muted); font-size:18px; margin-bottom:18px; }
+    @media (min-width:860px) { .choices { grid-template-columns:1fr 1fr; } .question { font-size:32px; } .choice { font-size:20px; padding:18px; } }
+    dialog::backdrop { background: rgba(0, 4, 14, 0.6); }
+    dialog { border:0; border-radius:16px; padding:0; width:min(820px,92vw); background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); color:var(--text); box-shadow:0 20px 60px var(--shadow), inset 0 0 0 1px rgba(255,255,255,0.06); }
+    .dialog-header { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; }
+    .dialog-body { padding:12px 16px 16px; }
+    .dialog-actions { padding:12px 16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:8px; justify-content:flex-end; }
+    .video-wrap { position:relative; background:rgba(0,0,0,0.35); border-radius:12px; overflow:hidden; }
+    video { width:100%; height:auto; display:block; background:#000; }
+  </style>
+  <script>
+    // Allow opening via file:// by guarding fetch errors and falling back to embedded default
+    const DEFAULT_QUIZ = {
+      title: 'Learn About China: Common Misconceptions',
+      questions: [
+        { type: 'tf', question: 'True or False: China only copies things and never makes new inventions.', answerBool: false },
+        { type: 'mc', question: 'Some people think Chinese companies only make things that break easily. Is this true?', choices: ['Yes, Chinese products are always cheap and break easily', 'No, Chinese companies make high-quality products like phones and drones', 'Chinese companies only make toys', 'All products from China are the same'], answerIndex: 1 },
+        { type: 'tf', question: 'True or False: Chinese companies only sell products in China, not in other countries.', answerBool: false },
+        { type: 'mc', question: 'What do Chinese companies make that is used around the world?', choices: ['Only cheap toys', 'Only copies of other products', 'Many things like phones, apps, electric cars, and drones', 'Nothing important'], answerIndex: 2 },
+        { type: 'tf', question: 'True or False: China only became good at technology because the government helped them with money.', answerBool: false },
+        { type: 'mc', question: 'Some people think China only puts things together and doesn\'t design anything. Is this true?', choices: ['Yes, China only puts pieces together', 'No, China designs and builds many things from scratch', 'China doesn\'t make anything', 'China only designs toys'], answerIndex: 1 },
+        { type: 'tf', question: 'True or False: Chinese technology is only good because workers get paid less money, not because they are creative.', answerBool: false }
+      ]
+    };
+
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+    function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
+    function validateQuiz(obj) {
+      if (!obj || typeof obj !== 'object') throw new Error('Invalid JSON');
+      if (!Array.isArray(obj.questions) || obj.questions.length === 0) throw new Error('No questions found');
+      for (const q of obj.questions) {
+        if (!q || typeof q !== 'object') throw new Error('Each question must be an object');
+        if (typeof q.question !== 'string' || !q.question.trim()) throw new Error('Question text missing');
+        if (q.type === 'tf') {
+          if (typeof q.answerBool !== 'boolean') throw new Error('TF question requires answerBool');
+        } else if (q.type === 'mc' || !q.type) {
+          if (!Array.isArray(q.choices) || q.choices.length < 2) throw new Error('MC needs 2+ choices');
+          if (typeof q.answerIndex !== 'number' || q.answerIndex < 0 || q.answerIndex >= q.choices.length) throw new Error('MC answerIndex out of range');
+          q.type = 'mc';
+        } else {
+          throw new Error('Unknown question type: ' + q.type);
+        }
+      }
+      return { title: typeof obj.title === 'string' && obj.title.trim() ? obj.title.trim() : 'Exhibition Quiz', questions: obj.questions };
+    }
+  </script>
+</head>
+<body>
+  <div class="stage">
+    <div class="wrap">
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1 id="quiz-title">Exhibition Quiz</h1>
+            <div class="inline-muted" style="font-size:13px;">Answer 7 questions. Score appears at the end. Wrong answers may show a video explanation.</div>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="btn-full" class="ghost" title="Toggle fullscreen">Fullscreen</button>
+          <button id="btn-restart" class="secondary">Restart</button>
+        </div>
+      </header>
+
+      <div class="panel">
+        <div class="meta">
+          <div class="stat"><span>Progress</span><strong><span id="stat-progress">0</span>/<span id="stat-total">0</span></strong></div>
+          <div class="stat"><span>Questions</span><strong><span id="stat-questions">0</span></strong></div>
+          <div class="stat"><span>Status</span><strong><span id="stat-status">Ready</span></strong></div>
+        </div>
+        <div class="progress" aria-label="Progress"><div class="bar" id="progress-bar"></div></div>
+
+        <div id="screen-quiz" style="margin-top:16px;">
+          <div id="question" class="question">Loading…</div>
+          <div id="choices" class="choices"></div>
+          <div class="footer">
+            <div id="feedback" class="inline-muted">Choose an answer</div>
+            <div style="display:flex; gap:10px;">
+              <button id="btn-skip" class="ghost">Skip</button>
+              <button id="btn-next" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="screen-end" class="end-screen hidden">
+          <div class="end-score" id="end-score">0 / 0</div>
+          <div class="end-sub" id="end-sub">Great job!</div>
+          <div style="display:flex; gap:10px; justify-content:center;">
+            <button id="btn-play-again">Play Again</button>
+          </div>
+          <div id="end-video" class="video-wrap" style="margin-top:18px;">
+            <video id="end-video-player" controls playsinline></video>
+          </div>
+          <div class="inline-muted" style="text-align:center; margin-top:8px;">Learn: Common misconceptions about China</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="video-dialog">
+    <div class="dialog-header">
+      <strong>Explanation Video</strong>
+      <button id="video-close" class="ghost">Close</button>
+    </div>
+    <div class="dialog-body">
+      <div class="video-wrap">
+        <video id="video-player" controls playsinline></video>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button id="video-ok">OK</button>
+    </div>
+  </dialog>
+
+  <script>
+    const END_VIDEO_URL = 'videos/explanation-video.mp4';
+    let quiz = null;
+    let index = 0;
+    let score = 0;
+    let answered = false;
+
+    const elTitle = document.getElementById('quiz-title');
+    const elProgress = document.getElementById('stat-progress');
+    const elTotal = document.getElementById('stat-total');
+    const elQuestions = document.getElementById('stat-questions');
+    const elStatus = document.getElementById('stat-status');
+    const elBar = document.getElementById('progress-bar');
+    const elQuestion = document.getElementById('question');
+    const elChoices = document.getElementById('choices');
+    const elFeedback = document.getElementById('feedback');
+    const btnSkip = document.getElementById('btn-skip');
+    const btnNext = document.getElementById('btn-next');
+    const btnRestart = document.getElementById('btn-restart');
+    const btnFull = document.getElementById('btn-full');
+
+    const screenQuiz = document.getElementById('screen-quiz');
+    const screenEnd = document.getElementById('screen-end');
+    const endScore = document.getElementById('end-score');
+    const endSub = document.getElementById('end-sub');
+    const btnPlayAgain = document.getElementById('btn-play-again');
+    const endVideo = document.getElementById('end-video');
+    const endVideoPlayer = document.getElementById('end-video-player');
+    const videoDialog = document.getElementById('video-dialog');
+    const videoPlayer = document.getElementById('video-player');
+    const videoClose = document.getElementById('video-close');
+    const videoOk = document.getElementById('video-ok');
+
+    function setStatus(text) { elStatus.textContent = text; }
+    function setFeedback(text, color) { elFeedback.textContent = text; elFeedback.style.color = color || 'var(--muted)'; }
+
+    function render() {
+      const total = quiz.questions.length;
+      elTitle.textContent = quiz.title;
+      elTotal.textContent = total;
+      elQuestions.textContent = total;
+      elProgress.textContent = index;
+      const pct = total === 0 ? 0 : Math.round((index / total) * 100);
+      elBar.style.width = pct + '%';
+
+      if (index >= total) {
+        // End screen
+        screenQuiz.classList.add('hidden');
+        screenEnd.classList.remove('hidden');
+        endScore.textContent = score + ' / ' + total;
+        const ratio = total ? (score / total) : 0;
+        endSub.textContent = ratio >= 0.9 ? 'Outstanding!' : ratio >= 0.7 ? 'Great job!' : ratio >= 0.5 ? 'Nice effort!' : 'Try again!';
+        setStatus('Completed');
+        // Load end video with sound autoplay
+        if (END_VIDEO_URL) {
+          try { endVideoPlayer.pause(); } catch {}
+          endVideoPlayer.setAttribute('src', END_VIDEO_URL);
+          endVideoPlayer.load(); // Load the video source
+          
+          // Try to autoplay with sound (user has interacted, so this should work)
+          // If browser blocks it, fall back to muted autoplay
+          const tryAutoplayWithSound = async () => {
+            try {
+              endVideoPlayer.muted = false; // Enable sound
+              await endVideoPlayer.play();
+              // Success! Video playing with sound
+            } catch (e) {
+              // Browser blocked autoplay with sound, try muted
+              try {
+                endVideoPlayer.muted = true;
+                await endVideoPlayer.play();
+                // Video playing but muted - user can unmute with controls
+              } catch (e2) {
+                // Autoplay completely blocked - user needs to click play
+                console.log('Autoplay blocked - user can click play button');
+              }
+            }
+          };
+          
+          // Wait for video to be ready, then try autoplay
+          endVideoPlayer.addEventListener('loadeddata', tryAutoplayWithSound, { once: true });
+          // Also try immediately in case video is already loaded
+          if (endVideoPlayer.readyState >= 2) {
+            tryAutoplayWithSound();
+          }
+        }
+        return;
+      }
+
+      screenEnd.classList.add('hidden');
+      screenQuiz.classList.remove('hidden');
+
+      const q = quiz.questions[index];
+      elQuestion.textContent = q.question;
+      setFeedback('Choose an answer');
+      btnNext.disabled = true;
+      btnSkip.disabled = false;
+      answered = false;
+      elChoices.innerHTML = '';
+
+      if (q.type === 'tf') {
+        [true, false].forEach((val) => {
+          const div = document.createElement('div');
+          div.className = 'choice';
+          div.setAttribute('role', 'button');
+          div.textContent = val ? 'True' : 'False';
+          div.addEventListener('click', () => selectTF(val));
+          elChoices.appendChild(div);
+        });
+      } else {
+        q.choices.forEach((text, i) => {
+          const div = document.createElement('div');
+          div.className = 'choice';
+          div.setAttribute('role', 'button');
+          div.innerHTML = '<span style="opacity:.7">' + String.fromCharCode(65 + i) + '.</span> ' + text;
+          div.addEventListener('click', () => selectChoice(i));
+          elChoices.appendChild(div);
+        });
+      }
+    }
+
+    function reveal(correct) {
+      btnNext.disabled = false;
+      btnSkip.disabled = true;
+      setFeedback(correct ? 'Locked in' : 'Locked in', 'var(--muted)');
+    }
+
+    function selectChoice(i) {
+      if (answered) return;
+      answered = true;
+      const q = quiz.questions[index];
+      const correct = i === q.answerIndex;
+      if (correct) score += 1;
+      [...elChoices.children].forEach((el, idx) => {
+        el.classList.toggle('correct', idx === q.answerIndex);
+        if (idx === i && !correct) el.classList.add('incorrect');
+      });
+      if (!correct && q.videoUrl) {
+        tryShowVideo(q.videoUrl);
+      }
+      reveal(correct);
+    }
+
+    function selectTF(val) {
+      if (answered) return;
+      answered = true;
+      const q = quiz.questions[index];
+      const correct = Boolean(val) === Boolean(q.answerBool);
+      if (correct) score += 1;
+      [...elChoices.children].forEach((el) => {
+        const isTrue = el.textContent === 'True';
+        el.classList.toggle('correct', (isTrue && q.answerBool) || (!isTrue && !q.answerBool));
+        if ((isTrue && q.answerBool !== true) || (!isTrue && q.answerBool !== false)) el.classList.add('incorrect');
+      });
+      if (!correct && q.videoUrl) {
+        tryShowVideo(q.videoUrl);
+      }
+      reveal(correct);
+    }
+
+    function next() { if (!answered) return; index = clamp(index + 1, 0, quiz.questions.length); render(); }
+    function skip() { answered = true; next(); }
+    function restart() { index = 0; score = 0; answered = false; screenEnd.classList.add('hidden'); screenQuiz.classList.remove('hidden'); setStatus('Ready'); try { endVideoPlayer.pause(); } catch {} try { endVideoPlayer.removeAttribute('src'); endVideoPlayer.load(); } catch {} render(); }
+
+    function tryEnterFullscreen() {
+      const el = document.documentElement;
+      if (!document.fullscreenElement) { el.requestFullscreen?.(); } else { document.exitFullscreen?.(); }
+    }
+
+    btnNext.addEventListener('click', next);
+    btnSkip.addEventListener('click', skip);
+    btnRestart.addEventListener('click', restart);
+    btnFull.addEventListener('click', tryEnterFullscreen);
+    btnPlayAgain.addEventListener('click', restart);
+    videoClose.addEventListener('click', () => { try { videoPlayer.pause(); } catch {} videoDialog.close(); });
+    videoOk.addEventListener('click', () => { try { videoPlayer.pause(); } catch {} videoDialog.close(); });
+    videoDialog.addEventListener('close', () => { try { videoPlayer.pause(); } catch {} videoPlayer.removeAttribute('src'); videoPlayer.load(); });
+
+    function tryShowVideo(url) {
+      if (!url) return;
+      try { videoPlayer.pause(); } catch {}
+      videoPlayer.setAttribute('src', url);
+      try { videoPlayer.play().catch(() => {}); } catch {}
+      try { videoDialog.showModal(); } catch { videoDialog.show(); }
+    }
+
+    async function loadQuestionsJson() {
+      try {
+        const res = await fetch('questions.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const obj = await res.json();
+        return validateQuiz(obj);
+      } catch (e) {
+        return validateQuiz(DEFAULT_QUIZ);
+      }
+    }
+
+    (async function init() {
+      setStatus('Loading');
+      const loaded = await loadQuestionsJson();
+      // Shuffle and limit to 7 questions for exhibition play
+      loaded.questions = shuffle(loaded.questions.slice()).slice(0, 7);
+      quiz = loaded;
+      restart();
+    })();
+  </script>
+</body>
+</html>
+
+
+

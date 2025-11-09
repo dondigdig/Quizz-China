@@ -1,0 +1,64 @@
+{
+    "title": "Learn About China: Common Misconceptions",
+    "questions": [
+      {
+        "type": "tf",
+        "question": "True or False: China only copies things and never makes new inventions.",
+        "answerBool": false,
+        "explanation": "False! China makes many new inventions. They make fast trains, cool drones, and electric cars that are used all around the world."
+      },
+      {
+        "type": "mc",
+        "question": "Some people think Chinese companies only make things that break easily. Is this true?",
+        "choices": [
+          "Yes, Chinese products are always cheap and break easily",
+          "No, Chinese companies make high-quality products like phones and drones",
+          "Chinese companies only make toys",
+          "All products from China are the same"
+        ],
+        "answerIndex": 1,
+        "explanation": "No! Companies from China make many high-quality products. You might use apps like TikTok or buy drones that were made in China. They work really well!"      },
+      {
+        "type": "tf",
+        "question": "True or False: Chinese companies only sell products in China, not in other countries.",
+        "answerBool": false,
+        "explanation": "False! Chinese companies sell products all over the world. You can find Chinese brands in stores in America, Europe, and many other places."
+      },
+      {
+        "type": "mc",
+        "question": "What do Chinese companies make that is used around the world?",
+        "choices": [
+          "Only cheap toys",
+          "Only copies of other products",
+          "Many things like phones, apps, electric cars, and drones",
+          "Nothing important"
+        ],
+        "answerIndex": 2,
+        "explanation": "Chinese companies make lots of important things! They make phones, apps like TikTok, electric cars, drones, and fast trains that people use everywhere."        
+      },
+      {
+        "type": "tf",
+        "question": "True or False: China only became good at technology because the government helped them with money.",
+        "answerBool": false,
+        "explanation": "False! While the government helps, Chinese companies became successful because they have smart engineers, make products people want, and work really hard to make good things."
+      },
+      {
+        "type": "mc",
+        "question": "Some people think China only puts things together and doesn't design anything. Is this true?",
+        "choices": [
+          "Yes, China only puts pieces together",
+          "No, China designs and builds many things from scratch",
+          "China doesn't make anything",
+          "China only designs toys"
+        ],
+        "answerIndex": 1,
+        "explanation": "No! China designs and builds many things from the beginning. Companies like DJI design their own drones, and BYD designs their own electric cars. They don't just put pieces together!"
+      },
+      {
+        "type": "tf",
+        "question": "True or False: Chinese technology is only good because workers get paid less money, not because they are creative.",
+        "answerBool": false,
+        "explanation": "False! Chinese companies are creative and make new inventions. They lead the world in things like mobile payments, electric cars, and drone technology because they are innovative, not just because of lower costs."
+      }
+    ]
+  }
